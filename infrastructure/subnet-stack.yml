@@ -1,0 +1,52 @@
+Description: Creates Subnets and associate it to Route Table
+
+Parameters:
+  Name:
+    Type: String
+    Description: Name of the Subnet
+  VPCID:
+    Type: String
+    Description: VPC Id
+  SubnetCIDR:
+    Type: String
+    Description: CIDR block should be used to create the public subnet in AZ1 (e.g. 192.168.0.0/28)
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{2})"
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x. (e.g. 198.168.0.0/28)
+  AvailabilityZone:
+    Type: String
+    Description: Availability Zone
+  MapPublicIpOnLaunch:
+    Type: String
+    AllowedValues:
+      - true
+      - false
+  RouteTableId:
+    Type: String
+    Description: Route Table ID
+
+Resources:
+
+  ApplicationSubnet:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref VPCID
+      CidrBlock:
+        Ref: SubnetCIDR
+      AvailabilityZone:
+        Ref: AvailabilityZone
+      MapPublicIpOnLaunch: !Ref MapPublicIpOnLaunch
+      Tags:
+        - Key: Name
+          Value: !Ref Name
+
+  ApplicationSubnetRTAssoc:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      RouteTableId: !Ref RouteTableId
+      SubnetId: !Ref ApplicationSubnet
+
+Outputs:
+  SubnetId:
+    Description: "Subnet ID"
+    Value:
+      Ref: ApplicationSubnet

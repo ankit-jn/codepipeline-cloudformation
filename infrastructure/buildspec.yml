@@ -1,0 +1,43 @@
+version: 1.0
+
+environment_variables:
+  plaintext:
+    NESTED_CFN_TEMPLATES: |
+      vpc-stack.yml
+      subnet-stack.yml
+    CFN_TEMPLATE_FILES: |
+      master-stack.yml
+      vpc-stack.yml
+      subnet-stack.yml
+    CONFIG_FILES: |
+      config-prod.json
+      config-dev.json
+
+phases:
+  pre_build:
+    commands:
+      - echo "Validating CFN templates"
+      - |
+        for cfn_template in $CFN_TEMPLATE_FILES; do
+          echo "Validating CloudFormation template file $cfn_template"
+          aws cloudformation validate-template --template-body file://$cfn_template
+        done
+  build:
+    commands:
+      - echo "Copying nested stack templates to S3"
+      - |
+        for nested_cfn_template in $NESTED_CFN_TEMPLATES; do
+          echo "Copying $nested_cfn_template to \"s3://$TEMPLATE_BUCKET/$TEMPLATE_PREFIX/\""
+          aws s3 cp "$nested_cfn_template" "s3://$TEMPLATE_BUCKET/$TEMPLATE_PREFIX/$nested_cfn_template"
+        done
+      - echo "Updating template configuration files to use the correct template path"
+      - |
+        for conf in $CONFIG_FILES; do
+          echo "Replacing \"TEMPLATE_PATH_PLACEHOLDER\" for \"$TEMPLATE_BUCKET/$TEMPLATE_PREFIX\" in $conf"
+          sed -i -e "s/TEMPLATE_PATH_PLACEHOLDER/$TEMPLATE_BUCKET\/$TEMPLATE_PREFIX/" $conf
+        done
+
+artifacts:
+  files:
+    - master-stack.yml
+    - config-*.json

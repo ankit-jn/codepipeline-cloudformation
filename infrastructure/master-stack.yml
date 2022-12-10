@@ -1,0 +1,117 @@
+Description: Master stack which creates all required nested stacks
+
+Parameters:
+  TemplatePath:
+    Type: String
+    Description: S3Bucket Path where the templates are stored
+  ProjectName:
+    Type: String
+    Description: ProjectName
+  Environment:
+    Type: String
+    Description: Environment
+  VPCCIDR:
+    Type: String
+    Description: Enter a valid CIDR
+  PublicSubnet1CIDR:
+    Type: String
+    Description: CIDR block for Public Subnet 1
+  PublicSubnet2CIDR:
+    Type: String
+    Description: CIDR block for Public Subnet 1
+  PrivateSubnet1CIDR:
+    Type: String
+    Description: CIDR block for Private Subnet 1
+  PrivateSubnet2CIDR:
+    Type: String
+    Description: CIDR block for Private Subnet 2
+  TagPrefix:
+    Type: String
+    Description: Enter Prefix that should be used for Tags.
+    Default: "Training"
+
+Resources:
+
+  VpcStack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL:
+        Fn::Sub: "https://s3.amazonaws.com/${TemplatePath}/vpc-stack.yml"
+      Parameters:
+        ProjectName: !Ref ProjectName
+        Environment: !Ref Environment
+        VPCCIDR: !Ref VPCCIDR
+      Tags:
+        - Key: Name
+          Value: VPCStack
+
+  PublicSubnet1Stack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL:
+        Fn::Sub: "https://s3.amazonaws.com/${TemplatePath}/subnet-stack.yml"
+      Parameters:
+        Name: PublicSubnet1
+        VPCID: !GetAtt VpcStack.Outputs.VPCID
+        SubnetCIDR: !Ref PublicSubnet1CIDR
+        AvailabilityZone: !Sub ${AWS::Region}a
+        MapPublicIpOnLaunch: true
+        RouteTableId: !GetAtt VpcStack.Outputs.PublicRouteTable
+      Tags:
+        - Key: Name
+          Value: PublicSubnet1Stack
+
+  PublicSubnet2Stack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL:
+        Fn::Sub: "https://s3.amazonaws.com/${TemplatePath}/subnet-stack.yml"
+      Parameters:
+        Name: PublicSubnet2
+        VPCID: !GetAtt VpcStack.Outputs.VPCID
+        SubnetCIDR: !Ref PublicSubnet2CIDR
+        AvailabilityZone: !Sub ${AWS::Region}b
+        MapPublicIpOnLaunch: true
+        RouteTableId: !GetAtt VpcStack.Outputs.PublicRouteTable
+      Tags:
+        - Key: Name
+          Value: PublicSubnet2Stack
+
+  PrivateSubnet1Stack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL:
+        Fn::Sub: "https://s3.amazonaws.com/${TemplatePath}/subnet-stack.yml"
+      Parameters:
+        Name: PrivateSubnet1
+        VPCID: !GetAtt VpcStack.Outputs.VPCID
+        SubnetCIDR: !Ref PrivateSubnet1CIDR
+        AvailabilityZone: !Sub ${AWS::Region}a
+        MapPublicIpOnLaunch: false
+        RouteTableId: !GetAtt VpcStack.Outputs.PrivateRouteTable1
+      Tags:
+        - Key: Name
+          Value: PrivateSubnet1Stack
+
+  PrivateSubnet2Stack:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL:
+        Fn::Sub: "https://s3.amazonaws.com/${TemplatePath}/subnet-stack.yml"
+      Parameters:
+        Name: PrivateSubnet2
+        VPCID: !GetAtt VpcStack.Outputs.VPCID
+        SubnetCIDR: !Ref PrivateSubnet2CIDR
+        AvailabilityZone: !Sub ${AWS::Region}b
+        MapPublicIpOnLaunch: false
+        RouteTableId: !GetAtt VpcStack.Outputs.PrivateRouteTable2
+      Tags:
+        - Key: Name
+          Value: PrivateSubnet2Stack
+
+Outputs:
+
+  VPCID:
+    Description: "VPC ID"
+    Value:
+      Fn::GetAtt: VpcStack.Outputs.VPCID

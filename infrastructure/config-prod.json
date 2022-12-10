@@ -1,0 +1,13 @@
+{
+    "Parameters" : {
+      "TemplatePath": "TEMPLATE_PATH_PLACEHOLDER",
+      "ProjectName" : "Training",
+      "Environment" : "Prod",
+      "VPCCIDR": "192.168.2.0/25",
+      "PublicSubnet1CIDR": "192.168.2.0/27",
+      "PublicSubnet2CIDR": "192.168.2.32/27",
+      "PrivateSubnet1CIDR": "192.168.2.64/27",
+      "PrivateSubnet2CIDR": "192.168.2.96/27"
+    }
+  }
+  
