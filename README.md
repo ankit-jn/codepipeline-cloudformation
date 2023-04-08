@@ -43,4 +43,4 @@ This folder contains the Cloudformation Template used in provisioning AWS resour
 
 ### Authors
 
-Module is maintained by [Ankit Jain](https://github.com/ankit-jn) with help from [these professional](https://github.com/arjstack/codepipeline-cloudformation/graphs/contributors).
+Module is maintained by [Ankit Jain](https://github.com/ankit-jn) with help from [these professional](https://github.com/ankit-jn/codepipeline-cloudformation/graphs/contributors).
